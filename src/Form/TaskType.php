@@ -51,7 +51,7 @@ class TaskType extends AbstractType
             
             'label' => 'Enregistrer', 
             'attr' => [
-                'class' => 'form-control col-2', 'title' => 'Enregistrer',
+                'class' => 'form-control col-2 btn btn-dark', 'title' => 'Enregistrer',
             ]
         ]);
     }
