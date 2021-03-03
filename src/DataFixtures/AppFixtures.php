@@ -6,18 +6,32 @@ use DateTime;
 use Faker\Factory;
 use App\Entity\Tag;
 use App\Entity\Task;
+use App\Entity\User;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class AppFixtures extends Fixture
 {
+    /**
+     * Encodeur de mot de passe
+     *
+     * @var UserPasswordEncoderInterface
+     */
+    private $encoder;
+
+    public function __construct(UserPasswordEncoderInterface $encoder){
+        $this->encoder = $encoder;
+    }
+    
+
     public function load(ObjectManager $manager)
     {
         // Creation d'un objet faker
         $faker = Factory::create('fr-FR');
 
         // Création de nos 5 catégories
-        for($c = 0; $c <=5 ; $c++){
+        for($c = 0; $c < 5 ; $c++){
             // Création d'un nouvel objet tag
             $tag = new Tag;
 
@@ -49,6 +63,35 @@ class AppFixtures extends Fixture
             $manager->persist($task);
         }
 
+        // Creation de 5 utilisateurs
+        for($u = 0; $u < 5; $u++){
+
+            // Creation d'un nouvel objet User
+            $user = new User;
+
+            // Haschage de notre mot de passe avec les paramètres de sécurité de notre $user
+            //dans /config/packages/security.taml
+          
+            $hash = $this->encoder->encodePassword($user, "password");
+
+
+            // Si premier utilisateur créé on lui donne le rôle d'admin 
+            // et on lui force son adresse mail
+            if ($u ===0){
+                $user->setRoles(["ROLE_ADMIN"])
+                    ->setEmail('admin@admin.local');
+            }else {
+                $user->setEmail($faker->safeEmail());
+            }
+
+            // Pour tout le monde
+            $user->setPassword($hash);
+
+            // On fait persister les données
+            $manager->persist($user);
+        }
+
+        // On push le tout en BDD
         $manager->flush();
     }
 }

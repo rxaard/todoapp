@@ -23,6 +23,8 @@ security:
                     - App\Security\LoginFormAuthenticator
             logout:
                 path: app_logout
+                target: app_login
+                invalidate_session: true
                 # where to redirect after logout
                 # target: app_any_route
 
