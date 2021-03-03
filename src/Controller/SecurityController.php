@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Entity\User;
+use App\Form\ForgotPwdType;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
@@ -42,7 +45,23 @@ class SecurityController extends AbstractController
      */
     public function forgotPwd()
     {
-        return $this->render('security/forgotPwd.html.twig');
+
+        $user = new User;
+
+        $form = $this->createform(ForgotPwdType::class, $user, []);
+
+        //on nourri notre objet user avec nos données 
+        $form->handleRequest($user);
+
+        if($form->isSubmitted() and $form-> isValid()){
+            $user->getEmail($form['email']->getData());
+
+            
+
+        
+        }
+
+        return $this->render('security/forgotPwd.html.twig', ['form' => $form->createView()]);
     }
     
 }
