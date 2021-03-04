@@ -40,8 +40,31 @@ class SecurityController extends AbstractController
 
 
     /**
+     * 
+     * @Route("/checkEmail", name="app_checkEmail")
+     */
+    public function checkEmail()
+    {
+
+        $user = new User;
+
+        $form = $this->createform(ForgotPwdType::class, $user, []);
+
+        //on nourri notre objet user avec nos données 
+        
+        // $form->handleRequest($user);
+
+        if($form->isSubmitted() and $form-> isValid()){
+            
+
+        }
+
+        return $this->render('security/checkEmail.html.twig', ['form' => $form->createView()]);
+    }
+    
+    /**
      * @Route("/forgotPwd", name="app_forgotPwd")
-     *
+     * 
      */
     public function forgotPwd()
     {
@@ -51,14 +74,12 @@ class SecurityController extends AbstractController
         $form = $this->createform(ForgotPwdType::class, $user, []);
 
         //on nourri notre objet user avec nos données 
-        $form->handleRequest($user);
+        
+        // $form->handleRequest($user);
 
         if($form->isSubmitted() and $form-> isValid()){
-            $user->getEmail($form['email']->getData());
-
             
 
-        
         }
 
         return $this->render('security/forgotPwd.html.twig', ['form' => $form->createView()]);
