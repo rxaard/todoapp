@@ -63,34 +63,38 @@ class SecurityController extends AbstractController
         if($form->isSubmitted() and $form-> isValid()){
 
         $userEmail = $form['email']->getData();
-        $existEmail = $this->getDoctrine()->getRepository(User::class)->findOneBy( array ('email' => $userEmail));
-        dd($existEmail);
+        $existEmail = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $userEmail));
+// dd($existEmail);
+            if($existEmail){
+                $id = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $existEmail));
+                dd($id);
+                // return $this->redirectToRoute('app_forgotPwd', {id});
+            }
+        
         }
-           
        
         return $this->render('security/checkEmail.html.twig', ['form' => $form->createView()]);
-
-      
-
-        
     }
     
     /**
-     * @Route("/forgotPwd", name="app_forgotPwd")
+     * @Route("/forgotPwd/{id]", name="app_forgotPwd", requirements={"id"="\d+"})
      * 
      */
-    public function forgotPwd()
+    public function forgotPwd(User $id, Request $request)
     {
+        $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id'=> $id]);
 
-        $user = new User;
-
-        $form = $this->createform(ForgotPwdType::class, $user, []);
-
-      
+        $form = $this->createform(ForgotPwdType::class);
+        $form->handleRequest($request);
 
         if($form->isSubmitted() and $form-> isValid()){
-            
+            $manager = $this->getDoctrine()->getManager();
 
+            $user ->setPassword($form['password']->getData());
+ // dd($user);
+            $manager->persist($user);
+            $manager->flush($user);
+            
         }
 
         return $this->render('security/forgotPwd.html.twig', ['form' => $form->createView()]);
