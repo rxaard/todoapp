@@ -66,24 +66,24 @@ class SecurityController extends AbstractController
         $existEmail = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $userEmail));
 // dd($existEmail);
             if($existEmail){
-                $id = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $existEmail));
-                dd($id);
-                // return $this->redirectToRoute('app_forgotPwd', {id});
+               
+// dd($id);
+                return $this->redirectToRoute('app_forgotPwd', ['id'=>$existEmail->getId()]);
             }
-        
         }
-       
         return $this->render('security/checkEmail.html.twig', ['form' => $form->createView()]);
+
+        
     }
     
     /**
-     * @Route("/forgotPwd/{id]", name="app_forgotPwd", requirements={"id"="\d+"})
+     * @Route("/forgotPwd/{id}", name="app_forgotPwd", requirements={"id"="\d+"})
      * 
      */
     public function forgotPwd(User $id, Request $request)
     {
         $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id'=> $id]);
-
+// dd($user);
         $form = $this->createform(ForgotPwdType::class);
         $form->handleRequest($request);
 
