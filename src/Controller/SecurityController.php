@@ -4,14 +4,22 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\ForgotPwdType;
+use App\Form\CheckEmailType;
+use App\Repository\TaskRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
+    
+      
+    
+    
+    
     /**
      * @Route("/login", name="app_login")
      */
@@ -43,23 +51,28 @@ class SecurityController extends AbstractController
      * 
      * @Route("/checkEmail", name="app_checkEmail")
      */
-    public function checkEmail()
+    public function checkEmail(Request $request)
     {
 
-        $user = new User;
-
-        $form = $this->createform(ForgotPwdType::class, $user, []);
+        // $user = new User;
+        $form = $this->createform(CheckEmailType::class);
 
         //on nourri notre objet user avec nos données 
-        
-        // $form->handleRequest($user);
+        $form->handleRequest($request);
 
         if($form->isSubmitted() and $form-> isValid()){
-            
 
+        $userEmail = $form['email']->getData();
+        $existEmail = $this->getDoctrine()->getRepository(User::class)->findOneBy( array ('email' => $userEmail));
+        dd($existEmail);
         }
-
+           
+       
         return $this->render('security/checkEmail.html.twig', ['form' => $form->createView()]);
+
+      
+
+        
     }
     
     /**
@@ -73,9 +86,7 @@ class SecurityController extends AbstractController
 
         $form = $this->createform(ForgotPwdType::class, $user, []);
 
-        //on nourri notre objet user avec nos données 
-        
-        // $form->handleRequest($user);
+      
 
         if($form->isSubmitted() and $form-> isValid()){
             
