@@ -64,10 +64,10 @@ class SecurityController extends AbstractController
 
         $userEmail = $form['email']->getData();
         $existEmail = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $userEmail));
-// dd($existEmail);
+//dd($existEmail);
             if($existEmail){
                
-// dd($id);
+
                 return $this->redirectToRoute('app_forgotPwd', ['id'=>$existEmail->getId()]);
             }
         }
@@ -91,10 +91,10 @@ class SecurityController extends AbstractController
             $manager = $this->getDoctrine()->getManager();
 
             $user ->setPassword($form['password']->getData());
- // dd($user);
+
             $manager->persist($user);
-            $manager->flush($user);
-            
+            $manager->flush();
+//  dd($user);
         }
 
         return $this->render('security/forgotPwd.html.twig', ['form' => $form->createView()]);
