@@ -15,12 +15,17 @@ class ForgotPwdType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('password', RepeatedType::class, [
-            'type' => PasswordType::class,   
+        ->add('password', RepeatedType::class, [
+            'type' => PasswordType::class,
+            'invalid_message' => 'Les mots de passe doivent correspondre.',
+            'options' => ['attr' => [
+                'class' => 'form-control mb-3 col-8',
+                'title' => 'New Password'
+            ]],
+            'required' => true,
             'first_options'  => ['label' => 'Nouveau mot de passe'],
             'second_options' => ['label' => 'Confirmer le mot de passe'],
-            'invalid_message' => 'Les 2 mots de passe ne sont pas identiques.'
-            ])    
+        ])
             
           
             ->add('valid', SubmitType::class, [

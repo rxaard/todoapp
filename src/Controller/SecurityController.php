@@ -5,21 +5,29 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\ForgotPwdType;
 use App\Form\CheckEmailType;
-use App\Repository\TaskRepository;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class SecurityController extends AbstractController
-{
-    
-      
-    
-    
-    
+{   
+
+ /**
+     * Encodeur de mot de passe
+     *
+     * @var UserPasswordEncoderInterface
+     */
+    private $encoder;
+
+    public function __construct(UserPasswordEncoderInterface $encoder){
+        $this->encoder = $encoder;
+    }
+
+
+
     /**
      * @Route("/login", name="app_login")
      */
@@ -87,14 +95,18 @@ class SecurityController extends AbstractController
         $form = $this->createform(ForgotPwdType::class);
         $form->handleRequest($request);
 
+
         if($form->isSubmitted() and $form-> isValid()){
             $manager = $this->getDoctrine()->getManager();
 
-            $user ->setPassword($form['password']->getData());
+            $hash = $this->encoder->encodePassword($user, $form['password']->getdata());
+//dd($hash);
+            $user ->setPassword($hash);
 
             $manager->persist($user);
             $manager->flush();
-//  dd($user);
+
+            return $this->redirectToRoute('app_login');
         }
 
         return $this->render('security/forgotPwd.html.twig', ['form' => $form->createView()]);
