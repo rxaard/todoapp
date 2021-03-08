@@ -32,9 +32,9 @@ class TaskType extends AbstractType
             ])
             ->add('dueAt', DateTimeType::class, [
                 'widget' => 'single_text',
-                'label' => 'Date effective', 
+                'label' => 'entity.effectivedate', 
                 'attr' => [
-                    'class' => 'form-control col-8', 'title' => 'Date effective',
+                    'class' => 'form-control col-8', 'title' => 'entity.effectivedate',
                 ]
             ])
             ->add('tag', EntityType::class, ['class' => Tag::class, 'query_builder' => function (EntityRepository $er){
@@ -49,9 +49,9 @@ class TaskType extends AbstractType
             ])
         ->add('save', SubmitType::class, [
             
-            'label' => 'Enregistrer', 
+            'label' => 'button.save', 
             'attr' => [
-                'class' => 'form-control col-2 btn btn-dark', 'title' => 'Enregistrer',
+                'class' => 'form-control col-2 btn btn-dark', 'title' => 'button.save',
             ]
         ]);
     }
