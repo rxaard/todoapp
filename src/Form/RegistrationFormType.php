@@ -63,6 +63,7 @@ class RegistrationFormType extends AbstractType
                 
                 'title' => "Votre mot de passe doit contenir au minimum 8 carac-
                 tères ou plus qui sont d'au moins un certain nombre,
+
                 et une majuscule et minuscule dans un ordre aléatoire.",
                 'maxlength' => 255
              

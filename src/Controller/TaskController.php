@@ -3,13 +3,17 @@
 namespace App\Controller;
 
 use App\Entity\Task;
+use App\Form\MailType;
 use App\Form\TaskType;
-use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Mime\Email;
 use App\Repository\TaskRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class TaskController extends AbstractController
 {
@@ -26,15 +30,23 @@ class TaskController extends AbstractController
     private $manager;
 
     /**
+     * Undocumented variable
+     *
+     * @var TranslatorInterface
+     */
+    private $translator;
+
+    /**
      * Constructeur du taskController pour injection de dépendances
      *
      * @param TaskRepository $repository
      * @param EntityManagerInterface $manager
      * @return void
      */
-    public function __construct(TaskRepository $repository, EntityManagerInterface $manager){
+    public function __construct(TaskRepository $repository, EntityManagerInterface $manager, TranslatorInterface $translator){
         $this->repository = $repository;
         $this->manager = $manager;
+        $this->translator = $translator;
     }
 
     /**
@@ -44,11 +56,19 @@ class TaskController extends AbstractController
     {
 
         //Récupérer les informations de l'utilisateur connecté
-        // $user = $this->getUser();
+        $user = $this->getUser();
 
-
-        // dans ce repository nous récupérons toutes les données
-        $tasks = $this->repository->findAll();
+        if($user->getRoles()[0] === 'ROLE_ADMIN') {
+            // Recuperer les données du repository pour l'admin
+            $tasks = $this->repository->findAll();
+            }
+            else {
+            // Recuperer les données du repository pour le user connecté
+                $tasks = $this->repository->findBy(
+                    ['user' => $user->getId()],
+                    ['id' => 'ASC']
+                );
+        }
 
         return $this->render('task/index.html.twig', [
             'tasks' => $tasks,
@@ -64,6 +84,9 @@ class TaskController extends AbstractController
      */
     public function task(Task $task = null, Request $request): Response {
         
+        // Récuperer les infos du user connecté
+        $user = $this->getUser();
+
         if (!$task){
             $task = new Task();
             $flag = true;
@@ -86,17 +109,32 @@ class TaskController extends AbstractController
             $task->setName($form['name']->getData())
             ->setDescription($form['description']->getData())
             ->setDueAt($form['dueAt']->getData())
-            ->setTag($form['tag']->getData());
+            ->setTag($form['tag']->getData())
+            ->setUser($user);
 
            // $manager = $this->getDoctrine()->getManager();
             $this->manager->persist($task);
             $this->manager->flush();
+
+            $this->addFlash('success', $flag ? "Votre tâche a bien été ajouté":"Votre tache à bien été modifiée");
 
             return $this->redirectToRoute('tasks_listing');
         }
 
         return $this->render('task/create.html.twig', ['form' => $form->createView()]);
     }
+
+     /**
+     * @Route("/tasks/calendar", name="task_calendar")
+     *
+     * @return Response
+     */
+    public function calendar(): Response
+    {
+       
+        return $this->render('task/calendar.html.twig');
+    }
+
 
     /**
      * @Route("/tasks/delete/{id}", name = "task_delete", requirements = {"id"="\d+"})
@@ -108,6 +146,8 @@ class TaskController extends AbstractController
 
         $this->manager->remove($task);
         $this->manager->flush();
+
+        $this->addFlash('success', 'Votre tâche à bien été supprimée');
 
         return $this->redirectToRoute('tasks_listing');
     }
@@ -124,5 +164,45 @@ class TaskController extends AbstractController
         'task' => $task,
         ]);
     }
+
+    /**
+     * @Route (" /tasks/email/{id}", name="task_email", requirements={"id"="\d+"}))
+     *
+     * @param Request $request
+     * @param Task $task
+     * @param MailerInterface $mailer
+     * @return Response
+     */
+    public function sendEmail(Request $request,Task $task,MailerInterface $mailer ) : Response{
+
+        $user = $this->getUser()->getEmail();
+      $sub="Vous avez reçu la tache: ".$task->getName();
+      $text="Son contenu est: ". $task->getDescription()."\n".
+      "Date de début: ".$task->getCreatedAt()->format('d-m-Y')."\n".
+      "Date de fin: ".$task->getDueAt()->format('d-m-Y')."\n";
+
+        //Creation du formulaire
+    $form = $this->createForm(MailType ::class,
+    ['from'=>$user,'name'=>$sub,'description'=>$text]);
+    $form -> handleRequest($request);
+    
+
+    if($form->isSubmitted() and $form->isValid()){
+        $emailDest= $form['to']->getData();
+            $message = (new Email() )
+                    ->from($user)
+                    ->to($emailDest)
+                    ->subject($sub)
+                    ->text($text);
+            $mailer->send($message);  
+
+            $this->addFlash('success', $this->translator->trans('flash.mail.success'));
+
+         return $this->redirectToRoute('tasks_listing'); 
+        }
+        
+        return $this ->render('task/email.html.twig',['form'=>$form ->createView()]);
+    }
+    
 
 }
