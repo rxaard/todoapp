@@ -11,6 +11,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
@@ -92,36 +93,54 @@ class SecurityController extends AbstractController
 
     // Essai d'envoi de mail
 
-            
-//dd($userEmail);
-            $text="Veuillez cliquer sur le lien pour confirmer votre email.";
-
-
             if($existEmail){
                 $message = (new Email())
                     ->to($userEmail)
-                    ->text($text);
-            $mailer->send($message); 
+                    ->html(
+                        $this->renderView(
+                            'emails/changePwd.html.twig', ['token'=>$existEmail->getToken()]
+                        )
+                    )
+                  ;
+            $mailer->send($message);      
 
-           
-
-    // dd($mailer);
-                return $this->redirectToRoute('app_forgotPwd', ['id'=>$existEmail->getId()]);
+                return $this->redirectToRoute('app_forgotPwd', ['token'=>$existEmail->getToken()]);
             }
         }
         return $this->render('security/checkEmail.html.twig', ['form' => $form->createView()]);
+    }
 
+
+    // si supérieur à 10min, retourne false 
+    private function isRequestInTime(\Datetime $pwdRequestedAt = null)
+    {
+        if ($pwdRequestedAt === null)
+        {
+            return false;        
+        }
         
+        $now = new \DateTime();
+        $interval = $now->getTimestamp() - $pwdRequestedAt->getTimestamp();
+
+        $daySeconds = 60 * 0.5;
+        $response = $interval > $daySeconds ? false : $response = true;
+        return $response;
     }
     
     /**
-     * @Route("/forgotPwd/{id}", name="app_forgotPwd", requirements={"id"="\d+"})
+     * @Route("/forgotPwd/{token}", name="app_forgotPwd")
      * 
      */
-    public function forgotPwd(User $id, Request $request)
+    public function forgotPwd(User $id, $token, Request $request)
     {
+
+        if($id->getToken() === null || $token !== $id->getToken() || !$this->isRequestInTime($id->getPwdRequestedAt())){
+
+            throw new AccessDeniedHttpException();
+        }
+
         $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id'=> $id]);
-// dd($user);
+//  dd($user);
         $form = $this->createform(ForgotPwdType::class);
         $form->handleRequest($request);
 

@@ -7,10 +7,11 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>Changement de votre mot de passe</h1>
-<p>Veuillez cliquer sur le lien pour être redirigé sur notre formulaire.</p>
-<p><a href="{{absolute_url(path('app_forgotPwd', {'token': token})) }}">Changer mon mot de passe</a></p>
-
+        <h1>Changement de votre mot de passe</h1>
+    <p>Veuillez cliquer sur le lien pour être redirigé sur notre formulaire.</p>
+    <p>
+    <a href="{{absolute_url(path('app_forgotPwd', {'token': token})) }}">Changer mon mot de passe</a>
+    </p>
 
 </body>
 </html>
