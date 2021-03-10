@@ -5,7 +5,9 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\ForgotPwdType;
 use App\Form\CheckEmailType;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,6 +28,12 @@ class SecurityController extends AbstractController
         $this->encoder = $encoder;
     }
 
+        /**
+     * Undocumented variable
+     *
+     * @var TranslatorInterface
+     */
+    private $translator;
 
 
     /**
@@ -59,23 +67,45 @@ class SecurityController extends AbstractController
      * 
      * @Route("/checkEmail", name="app_checkEmail")
      */
-    public function checkEmail(Request $request)
+    public function checkEmail(Request $request, MailerInterface $mailer)
     {
-
-        // $user = new User;
         $form = $this->createform(CheckEmailType::class);
 
-        //on nourri notre objet user avec nos données 
         $form->handleRequest($request);
 
         if($form->isSubmitted() and $form-> isValid()){
+            $manager = $this->getDoctrine()->getManager();
 
-        $userEmail = $form['email']->getData();
-        $existEmail = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $userEmail));
-//dd($existEmail);
+            $userEmail = $form['email']->getData();
+            $existEmail = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $userEmail));
+    //dd($existEmail);
+
+            // On génère un token et on l'enregistre
+            $existEmail->setToken(md5(uniqid()));
+
+            // On génère la date 
+            $existEmail->setPwdRequestedAt(new \Datetime());
+    // dd($existEmail);
+
+            $manager->persist($existEmail);
+            $manager->flush();
+
+    // Essai d'envoi de mail
+
+            
+//dd($userEmail);
+            $text="Veuillez cliquer sur le lien pour confirmer votre email.";
+
+
             if($existEmail){
-               
+                $message = (new Email())
+                    ->to($userEmail)
+                    ->text($text);
+            $mailer->send($message); 
 
+           
+
+    // dd($mailer);
                 return $this->redirectToRoute('app_forgotPwd', ['id'=>$existEmail->getId()]);
             }
         }
