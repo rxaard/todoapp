@@ -29,3 +29,4 @@ date: d/m/Y H:i
 flash: 
   mail:
     success: Votre email a bien été envoyé!
+    password: Votre mot de passe a été changé

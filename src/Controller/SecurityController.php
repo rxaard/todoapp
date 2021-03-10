@@ -14,9 +14,16 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class SecurityController extends AbstractController
 {   
+            /**
+     * Undocumented variable
+     *
+     * @var TranslatorInterface
+     */
+    private $translator;
 
  /**
      * Encodeur de mot de passe
@@ -25,17 +32,10 @@ class SecurityController extends AbstractController
      */
     private $encoder;
 
-    public function __construct(UserPasswordEncoderInterface $encoder){
+    public function __construct(UserPasswordEncoderInterface $encoder, TranslatorInterface $translator){
         $this->encoder = $encoder;
+        $this->translator = $translator;
     }
-
-        /**
-     * Undocumented variable
-     *
-     * @var TranslatorInterface
-     */
-    private $translator;
-
 
     /**
      * @Route("/login", name="app_login")
@@ -79,14 +79,12 @@ class SecurityController extends AbstractController
 
             $userEmail = $form['email']->getData();
             $existEmail = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $userEmail));
-    //dd($existEmail);
 
             // On génère un token et on l'enregistre
             $existEmail->setToken(md5(uniqid()));
 
             // On génère la date 
             $existEmail->setPwdRequestedAt(new \Datetime());
-    // dd($existEmail);
 
             $manager->persist($existEmail);
             $manager->flush();
@@ -104,14 +102,16 @@ class SecurityController extends AbstractController
                   ;
             $mailer->send($message);      
 
-                return $this->redirectToRoute('app_forgotPwd', ['token'=>$existEmail->getToken()]);
+            $this->addFlash('success', $this->translator->trans('flash.mail.success'));
+
+                return $this->redirectToRoute('app_login');
             }
         }
         return $this->render('security/checkEmail.html.twig', ['form' => $form->createView()]);
     }
 
 
-    // si supérieur à 10min, retourne false 
+    // si supérieur à 30 sec, retourne false 
     private function isRequestInTime(\Datetime $pwdRequestedAt = null)
     {
         if ($pwdRequestedAt === null)
@@ -133,14 +133,13 @@ class SecurityController extends AbstractController
      */
     public function forgotPwd(User $id, $token, Request $request)
     {
-
         if($id->getToken() === null || $token !== $id->getToken() || !$this->isRequestInTime($id->getPwdRequestedAt())){
 
             throw new AccessDeniedHttpException();
         }
 
         $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id'=> $id]);
-//  dd($user);
+
         $form = $this->createform(ForgotPwdType::class);
         $form->handleRequest($request);
 
@@ -148,17 +147,21 @@ class SecurityController extends AbstractController
         if($form->isSubmitted() and $form-> isValid()){
             $manager = $this->getDoctrine()->getManager();
 
+            //Hasher le mot de passe
             $hash = $this->encoder->encodePassword($user, $form['password']->getdata());
-//dd($hash);
             $user ->setPassword($hash);
+
+            // vider les propriétés token et pwdRequestedAt 
+            $user->setToken(null);
+            $user->setPwdRequestedAt(null);
 
             $manager->persist($user);
             $manager->flush();
 
+            $this->addFlash('success', $this->translator->trans('flash.mail.password'));
+
             return $this->redirectToRoute('app_login');
         }
-
         return $this->render('security/forgotPwd.html.twig', ['form' => $form->createView()]);
     }
-    
 }
