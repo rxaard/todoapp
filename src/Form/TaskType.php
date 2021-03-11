@@ -47,13 +47,21 @@ class TaskType extends AbstractType
                     'class' => 'form-control col-8', 'title' => 'Categorie'
                 ]
             ])
-        ->add('save', SubmitType::class, [
-            
-            'label' => 'button.save', 
-            'attr' => [
-                'class' => 'form-control col-2 btn btn-dark', 'title' => 'button.save',
-            ]
-        ]);
+            ->add('address', TextType::class, [
+                'label' => 'Adresse', 
+                'attr' => [
+                    'class' => 'form-control col-8', 
+                    'title' => 'Adresse',
+                    'required' => false,
+                ]
+            ])
+            ->add('save', SubmitType::class, [
+                
+                'label' => 'button.save', 
+                'attr' => [
+                    'class' => 'form-control col-2 btn btn-dark', 'title' => 'button.save',
+                ]
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver)
