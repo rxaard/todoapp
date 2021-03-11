@@ -23,18 +23,7 @@
 				{% if is_granted('ROLE_ADMIN') %}
 					<th>User ID</th>
 				{% endif %}
-				<th class="not-pdf">UpDate</th>
-				<th class="not-pdf">Delete</th>
-				
-                <th>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <th>Archivage</th>
-                    {% else %}
-                        <th></th>
-                    {% endif %}
-                </th>
-				
-
+                <th class="not-pdf"></th>
 			</thead>
 			<tbody>
 				{% if tasks is defined %}
@@ -48,26 +37,12 @@
 							{% if is_granted('ROLE_ADMIN') %}
 								<td>{{ task.user.id }}</td>
 							{% endif %}
-							<td>
-								<a href="{{path('task_update', {'id':task.id})}}" class="btn btn-success not-pdf">Update</a>
-							</td>
-							<td>
-								<a href="{{path('task_delete', {'id':task.id})}}" class="btn btn-danger not-pdf">Delete</a>
-							</td>
-							<td>
-								<a href="{{ path('task_email',{'id': task.id})}}" class="btn btn-primary not-pdf">Email</a>
-							</td>
-							<td>
-                                {% if is_granted('ROLE_ADMIN') %}
-                                    <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input " {% if task.isArchived == true %} checked {% endif %} disabled id="customSwitch2">
-                                        <label class="custom-control-label" for="customSwitch2"></label>
-                                    </div>
-                                {% else %}
-                                    <a href="{{ path('task_archive',{'id': task.id})}}" class="btn btn-danger ">Archiver</a>
-                                {% endif %}
-                            </td>
-							
+							{% if is_granted('ROLE_ADMIN') %}
+								<td>
+									<a href="{{ path('task_republier',{'id': task.id})}}" class="btn btn-primary ">Republier</a>
+								</td>
+
+							{% endif %}
 						</tr>
 					{% endfor %}
 				{% endif %}

@@ -6,7 +6,7 @@
 		<a href="{{ path('tasks_listing') }}" class="btn btn-primary mb-3 not-pdf">Retour</a>
 		<div class="card mb-3">
 			<div class="card-header">
-				prévu du {{ task.beginAt|date('d/m/Y H:i') }} au {{ task.dueAt|date('d/m/Y H:i') }}
+				prévu du {{ task.beginAt|date('d/m/Y H:i') }} au {{ task.endAt|date('d/m/Y H:i') }}
 			</div>
 			<div class="card-body">
 				<h5 class="card-title">{{ task.name }}</h5>
@@ -31,7 +31,7 @@
 					{% endif %}
 				</ul>
 			<div class="card-body not-pdf">
-				{# <a href="{{ path('task_pdf', {'id': task.id}) }}" class="btn btn-primary">Export to PDF</a> #}
+				<a href="{{ path('task_pdf', {'id': task.id}) }}" class="btn btn-primary">Export to PDF</a>
 				<a href="{{ path('task_email', {'id': task.id}) }}" class="btn btn-primary">Email</a>
 			</div>
 			<div class="card-footer text-muted">

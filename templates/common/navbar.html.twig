@@ -1,8 +1,8 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-primary">
+<nav class="navbar navbar-expand-lg navbar-light bg-primary not-pdf">
 	<div class="container-fluid">
 		<a class="navbar-brand" href="{{ path('home') }}">To Do App</a>
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle
-																																							navigation">
+																																															navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<div class="collapse navbar-collapse" id="navbarNav">
@@ -19,8 +19,15 @@
 					<a class="nav-link" href="#">Calendrier</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" href="#">Utilisateur</a>
+					<a class="nav-link" href="{{ path('task_profile') }}">Profil</a>
 				</li>
+
+				{% if is_granted('ROLE_ADMIN') == false %}
+					<li class="nav-item">
+						<a class="nav-link" href="{{ path('tasks_archives') }}">Archives</a>
+					</li>
+				{% endif %}
+
 				<li class="nav-item">
 					<a class="nav-link text-warning" href="{{ path('app_logout') }}">Se déconnecter</a>
 				</li>
